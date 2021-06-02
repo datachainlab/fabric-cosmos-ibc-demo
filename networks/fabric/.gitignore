@@ -1,0 +1,15 @@
+*.block
+*.tx
+*.tar.gz
+/log.txt
+/build/*
+
+/config/fabric-ca/**
+!/config/fabric-ca/OrdererCA
+!/config/fabric-ca/OrdererCA/fabric-ca-server-config.yaml
+!/config/fabric-ca/PlatformerCA
+!/config/fabric-ca/PlatformerCA/fabric-ca-server-config.yaml
+
+/external/**/code.tar.gz
+/msps
+
