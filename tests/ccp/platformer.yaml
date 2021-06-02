@@ -1,0 +1,61 @@
+---
+# https://github.com/hyperledger/fabric-sdk-go/blob/master/test/fixtures/config/config_e2e.yaml
+name: org1
+version: 1.0.0
+client:
+  organization: PlatformerOrg
+  logging:
+    level: info
+  connection:
+    timeout:
+      peer:
+        endorser: '300'
+
+organizations:
+  OrdererOrg:
+    mspid: OrdererMSP
+  PlatformerOrg:
+    mspid: PlatformerMSP
+    peers:
+      - peer0.platformer.example.com
+
+channels:
+  channel1:
+    orderers:
+      - orderer.example.com
+    peers:
+      peer0.platformer.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+
+orderers:
+  orderer.example.com:
+    url: grpc://orderer.example.com:7050
+    grpcOptions:
+      ssl-target-name-override: orderer.example.com
+      hostnameOverride: orderer.example.com
+      allow-insecure: true
+
+peers:
+  peer0.platformer.example.com:
+    url: grpc://peer0.platformer.example.com:7051
+    grpcOptions:
+      ssl-target-name-override: peer0.platformer.example.com
+      hostnameOverride: peer0.platformer.example.com
+      allow-insecure: true
+
+### https://github.com/hyperledger/fabric-sdk-go/blob/master/test/fixtures/config/overrides/local_entity_matchers.yaml
+entityMatchers:
+  peer:
+    - pattern: peer0.platformer.example.com
+      urlSubstitutionExp: localhost:7051
+      sslTargetOverrideUrlSubstitutionExp: peer0.platformer.example.com
+      mappedHost: peer0.platformer.example.com
+
+  orderer:
+    - pattern: orderer.example.com
+      urlSubstitutionExp: localhost:7050
+      sslTargetOverrideUrlSubstitutionExp: orderer.example.com
+      mappedHost: orderer.example.com

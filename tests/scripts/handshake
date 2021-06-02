@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -eux
+
+CURDIR=$(cd $(dirname "$0"); pwd)
+
+source ${CURDIR}/util
+
+RLY="${RLY_BINARY} --debug"
+
+CHAINID_ONE=ibc0
+RLYKEY=testkey
+CHAINID_TWO=ibc1
+PATH_NAME=ibc01
+
+# add a path between chain0 and chain1
+$RLY paths add $CHAINID_ONE $CHAINID_TWO $PATH_NAME --file=${CURDIR}/../configs/path.json
+
+retry 5 $RLY tx clients $PATH_NAME
+retry 5 $RLY tx connection $PATH_NAME
+retry 5 $RLY tx channel $PATH_NAME

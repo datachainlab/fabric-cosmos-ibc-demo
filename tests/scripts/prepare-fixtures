@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -eux
+
+CURDIR=$(cd $(dirname "$0"); pwd)
+
+if ! [ -x ${MSPS_DIR} ]; then
+  MSPS_DIR=${CURDIR}/../../networks/fabric/msps
+  echo "set MSPS_DIR as '${MSPS_DIR}'" >&2
+  exit 1
+fi
+
+FIXTURES_DIR=${CURDIR}/../fixtures
+
+## Setup test fixtures
+
+rm -rf ${FIXTURES_DIR}/wallet && mkdir -p ${FIXTURES_DIR}/wallet
+rm -rf ${FIXTURES_DIR}/output && mkdir -p ${FIXTURES_DIR}/output
+rm -rf ${FIXTURES_DIR}/certs && mkdir -p ${FIXTURES_DIR}/certs
+rm -rf ${FIXTURES_DIR}/keys && mkdir -p ${FIXTURES_DIR}/keys/clients ${FIXTURES_DIR}/keys/signers
+rm -rf ${FIXTURES_DIR}/msps && mkdir -p ${FIXTURES_DIR}/msps
+
+ln -s ${MSPS_DIR}/PlatformerMSP/users/User1@platformer.example.com/msp/signcerts/cert.pem ${FIXTURES_DIR}/certs/platformer-user-signcert.pem
+ln -s ${MSPS_DIR}/PlatformerMSP/users/Importer@platformer.example.com/msp/signcerts/cert.pem ${FIXTURES_DIR}/certs/importer-signcert.pem
+ln -s ${MSPS_DIR}/PlatformerMSP/users/Exporter@platformer.example.com/msp/signcerts/cert.pem ${FIXTURES_DIR}/certs/exporter-signcert.pem
+
+ln -s ${MSPS_DIR}/PlatformerMSP/users/User1@platformer.example.com/msp/keystore/$(basename ${MSPS_DIR}/PlatformerMSP/users/User1@platformer.example.com/msp/keystore/*_sk) ${FIXTURES_DIR}/keys/clients/platformer-user-priv_sk
+ln -s ${MSPS_DIR}/PlatformerMSP/users/Importer@platformer.example.com/msp/keystore/$(basename ${MSPS_DIR}/PlatformerMSP/users/Importer@platformer.example.com/msp/keystore/*_sk) ${FIXTURES_DIR}/keys/clients/importer-priv_sk
+ln -s ${MSPS_DIR}/PlatformerMSP/users/Exporter@platformer.example.com/msp/keystore/$(basename ${MSPS_DIR}/PlatformerMSP/users/Exporter@platformer.example.com/msp/keystore/*_sk) ${FIXTURES_DIR}/keys/clients/exporter-priv_sk
+
+ln -s ${MSPS_DIR}/PlatformerMSP/users/IbcSigner@platformer.example.com/msp ${FIXTURES_DIR}/msps/PlatformerMSP

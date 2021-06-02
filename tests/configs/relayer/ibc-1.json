@@ -1,0 +1,1 @@
+{"@type":"/relayer.fabric.config.ChainConfig","chain_id":"ibc1","msp_id":"PlatformerMSP","channel":"channel1","chaincode_id":"trade","connection_profile_path":"./ccp/platformer.yaml","ibc_policies":["PlatformerMSP"],"endorsement_policies":["PlatformerMSP"],"msp_config_paths":["./fixtures/msps/PlatformerMSP"]}
