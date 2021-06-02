@@ -28,7 +28,7 @@ make transfer
 Here's how to clean up:
 
 ```
-make stop-fabric
+make stop
 make clean
 ```
 
