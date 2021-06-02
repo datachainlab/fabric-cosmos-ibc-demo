@@ -21,7 +21,7 @@ RUN make build
 FROM alpine:${ALPINE_VER}
 
 # Install ca-certificates
-RUN apk add --update ca-certificates
+RUN apk add --update bash ca-certificates
 WORKDIR /root
 
 # Copy over binaries from the build-env

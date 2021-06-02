@@ -2,20 +2,7 @@
 
 set -x
 
-# two-chainz creates two chains (fabric and tendermint) and configures the relayer to
-
-CURDIR=$(cd $(dirname "$0"); pwd)
-
-DATA_DIR="${CURDIR}/../data"
-RELAYER_CONF="$HOME/.urelayer"
-RLY="${RLY_BINARY} --debug"
-FIXTURES_DIR=${CURDIR}/../fixtures
-
-# Ensure ${TM_BINARY} is installed
-if ! [ -x ${TM_BINARY} ]; then
-  echo "Error: ${TM_BINARY} is not installed." >&2
-  exit 1
-fi
+# configures fabric chain and the relayer for now.
 
 # Ensure ${RLY_BINARY} is installed
 if ! [ -x ${RLY_BINARY} ]; then
@@ -23,10 +10,14 @@ if ! [ -x ${RLY_BINARY} ]; then
   exit 1
 fi
 
-# Run tendermint chain
-${CURDIR}/tm-chain
-# Run fabric chain
-${CURDIR}/fab-chain
+CURDIR=$(cd $(dirname "$0"); pwd)
+
+RELAYER_CONF="$HOME/.urelayer"
+RLY="${RLY_BINARY} --debug"
+FIXTURES_DIR=${CURDIR}/../fixtures
+
+# Setup fixtures for fabric chain
+${CURDIR}/prepare-fixtures
 
 echo "Generating ${RLY_BINARY} configurations..."
 
@@ -34,7 +25,7 @@ ${RLY} config init
 ${RLY} chains add-dir ${CURDIR}/../configs/relayer/
 
 # setup key for tendermint client
-SEED0=$(jq -r '.mnemonic' $DATA_DIR/ibc0/relayer_seed.json)
+SEED0=$(jq -r '.mnemonic' $TM_DATA_DIR/ibc0/relayer_seed.json)
 echo "Key $(${RLY} tendermint keys restore ibc0 testkey "$SEED0") imported from ibc0 to relayer..."
 
 # setup wallet for fabric client

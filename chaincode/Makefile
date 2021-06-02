@@ -2,6 +2,6 @@
 build:
 	go build -mod=readonly -o $(CURDIR)/build/app $(CURDIR)/bin
 
-.PHONY: docker-image
-docker-image:
-	docker build -t chaincode-transfer -f $(CURDIR)/docker/app/Dockerfile .
+.PHONY: build-image
+build-image:
+	docker build -t datachainlab/fabric-cosmos-ibc-demo-chaincode -f $(CURDIR)/docker/app/Dockerfile .

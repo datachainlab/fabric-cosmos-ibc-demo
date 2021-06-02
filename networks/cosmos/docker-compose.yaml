@@ -1,0 +1,26 @@
+version: '3.5'
+
+networks:
+  cosmos-dev:
+    name: cosmos-dev
+    driver: bridge
+
+services:
+  cosmosnode:
+    container_name: cosmosnode
+    image: datachainlab/fabric-cosmos-ibc-demo-simd:latest
+    tty: true
+    environment:
+      - CHAIN_ID=ibc0
+      - CHAIN_DATA=/root/fixtures/data
+    working_dir: /root
+    command: /bin/bash -c './scripts/tm-chain.sh'
+    volumes:
+      - ./scripts:/root/scripts
+      - ./fixtures:/root/fixtures
+    ports:
+      - "26656-26657:26656-26657"
+      - "6060:6060"
+      - "9090:9090"
+    networks:
+      - cosmos-dev

@@ -4,12 +4,6 @@ set -e
 
 RLY="${RLY_BINARY} --debug"
 
-# Ensure ${CHAIN_BINARY} is installed
-if ! [ -x ${CHAIN_BINARY} ]; then
-  echo "Error: ${CHAIN_BINARY} is not installed." >&2
-  exit 1
-fi
-
 # XXX set proper value
 TX_INTERNAL=3
 

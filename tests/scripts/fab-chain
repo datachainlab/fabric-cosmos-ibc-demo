@@ -1,6 +1,0 @@
-#!/bin/bash
-
-set -x
-
-CURDIR=$(cd $(dirname "$0"); pwd)
-${CURDIR}/prepare-fixtures

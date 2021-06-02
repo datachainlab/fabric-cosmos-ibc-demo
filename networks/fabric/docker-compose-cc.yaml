@@ -7,7 +7,7 @@ networks:
 services:
   chaincode.platformer.example.com:
     container_name: chaincode.platformer.example.com
-    image: chaincode-transfer:latest
+    image: datachainlab/fabric-cosmos-ibc-demo-chaincode:latest
     environment:
       - CHAINCODE_CCID=${CHAINCODE_CCID_PLATFORMER}
       - CHAINCODE_ADDRESS=0.0.0.0:20000

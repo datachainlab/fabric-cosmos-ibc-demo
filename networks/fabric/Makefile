@@ -1,5 +1,3 @@
-DOCKER?=docker
-
 FABRIC_BIN_DIR?=$(CURDIR)/../../.bin
 SCRIPT_DIR?=$(CURDIR)/scripts
 
@@ -36,7 +34,7 @@ configtx:
 .PHONY: up-ca
 up-ca:
 	CA_IMAGE_TAG=$(CA_VERSION) \
-	$(DOCKER) compose -f docker-compose-ca.yaml up -d
+	docker-compose -f docker-compose-ca.yaml up -d
 
 .PHONY: enroll
 enroll:
@@ -66,12 +64,12 @@ up:
 	LOCAL_HOST_IP=$(shell docker network inspect $(DOCKER_NETWORK) | jq -r ".[].IPAM.Config[].Gateway") \
 	IMAGE_TAG=$(FABRIC_VERSION) \
 	LOGGING_SPEC=info \
-	$(DOCKER) compose up -d
+	docker-compose up -d
 
 .PHONY: down-ca
 down-ca:
 	CA_IMAGE_TAG=$(CA_VERSION) \
-	$(DOCKER) compose -f docker-compose-ca.yaml down -v
+	docker-compose -f docker-compose-ca.yaml down -v
 
 .PHONY: start
 start: clean up-ca enroll init up
@@ -84,7 +82,7 @@ createChannel:
 
 .PHONY: deployCC
 deployCC:
-	$(DOCKER) compose exec -T fabric-cli bash -c "./scripts/deployCC.sh"
+	docker-compose exec -T fabric-cli bash -c "./scripts/deployCC.sh"
 
 .PHONY: startCC
 startCC:
@@ -94,7 +92,7 @@ startCC:
 down:
 	LOCAL_HOST_IP=$(LOCAL_HOST_IP) IMAGE_TAG=$(FABRIC_VERSION) LOGGING_SPEC=$(LOGGING_SPEC) \
 	CA_IMAGE_TAG=$(CA_VERSION) \
-	$(DOCKER) compose \
+	docker-compose \
 	-f docker-compose-cc.yaml \
 	-f docker-compose-ca.yaml \
 	-f docker-compose.yaml \
