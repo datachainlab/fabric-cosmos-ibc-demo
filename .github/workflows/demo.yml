@@ -30,8 +30,14 @@ jobs:
           ${{ runner.os }}-go-${{ matrix.go }}-
     - name: build
       run: make build
-    - name: setup demo env
-      run: make setup
+    - name: start cosmos network
+      run: make start-cosmos
+    - name: start fabric network
+      run: make start-fabric
+    - name: change some file owners
+      run: sudo chown -R runner:docker networks/fabric/msps/
+    - name: prepare for the demo
+      run: make prepare
     - name: run the demo
       run: make transfer
     - name: stop demo env

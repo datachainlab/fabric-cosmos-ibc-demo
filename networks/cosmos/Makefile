@@ -1,10 +1,12 @@
 .PHONY: up
 up:
-	docker-compose up -d
+	docker-compose -f ../docker-compose.yaml \
+		up -d --build cosmosnode
 
 .PHONY: down
 down:
-	docker-compose down --volumes --remove-orphans
+	docker-compose -f ../docker-compose.yaml \
+		rm -fsv cosmosnode
 
 .PHONY: clean
 clean:

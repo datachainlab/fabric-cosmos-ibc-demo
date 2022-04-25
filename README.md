@@ -8,7 +8,6 @@ As a subject, token transfer using ICS-20 is used.
 
 ```
 make build
-make build-image
 ```
 
 ## Running the scenario

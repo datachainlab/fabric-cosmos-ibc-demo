@@ -1,11 +1,76 @@
 version: '3.5'
 
 networks:
-  fabric-dev:
-    name: fabric-dev
-    driver: bridge
+  dev:
+    name: dev
 
 services:
+  cosmosnode:
+    container_name: cosmosnode
+    build:
+      context: ../contract
+      dockerfile: docker/Dockerfile
+    tty: true
+    environment:
+      - CHAIN_ID=ibc0
+      - CHAIN_DATA=/root/fixtures/data
+    working_dir: /root
+    command: /bin/bash -c './scripts/tm-chain.sh'
+    volumes:
+      - ./cosmos/scripts:/root/scripts
+      - ./cosmos/fixtures:/root/fixtures
+    ports:
+      - "26656-26657:26656-26657"
+      - "6060:6060"
+      - "9090:9090"
+    networks:
+      - dev
+
+  ca.platformer.example.com:
+    image: hyperledger/fabric-ca:$CA_IMAGE_TAG
+    container_name: ca.platformer.example.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_PORT=7054
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+    volumes:
+      - ./fabric/config/fabric-ca/PlatformerCA:/etc/hyperledger/fabric-ca-server
+    networks:
+      - dev
+
+  ca.example.com:
+    image: hyperledger/fabric-ca:$CA_IMAGE_TAG
+    container_name: ca.example.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_PORT=8054
+    ports:
+      - "8054:8054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
+    volumes:
+      - ./fabric/config/fabric-ca/OrdererCA:/etc/hyperledger/fabric-ca-server
+    networks:
+      - dev
+
+  chaincode.platformer.example.com:
+    container_name: chaincode.platformer.example.com
+    build:
+      context: ../chaincode
+      dockerfile: docker/app/Dockerfile
+    environment:
+      - CHAINCODE_CCID=${CHAINCODE_CCID_PLATFORMER}
+      - CHAINCODE_ADDRESS=0.0.0.0:20000
+      - FABRIC_IBC_MSPS_DIR=/etc/hyperledger/msps
+    volumes:
+      - ./fabric/msps/PlatformerMSP/msp:/etc/hyperledger/msps/PlatformerMSP
+    ports:
+      - 20000:20000
+    networks:
+      - dev
+    restart: on-failure:5
+
   orderer.example.com:
     container_name: orderer.example.com
     image: hyperledger/fabric-orderer:${IMAGE_TAG}
@@ -22,13 +87,12 @@ services:
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: orderer
     volumes:
-      #- ./config/orderer.yaml:/var/hyperledger/orderer/orderer.yaml
-      - ./msps/OrdererMSP/orderers/orderer.example.com/msp:/etc/hyperledger/msp
-      - ./artifacts/orderer.block:/etc/hyperledger/fabric/orderer.block
+      - ./fabric/msps/OrdererMSP/orderers/orderer.example.com/msp:/etc/hyperledger/msp
+      - ./fabric/artifacts/orderer.block:/etc/hyperledger/fabric/orderer.block
     ports:
       - 7050:7050
     networks:
-      - fabric-dev
+      - dev
     extra_hosts:
       - host.internal:${LOCAL_HOST_IP}
 
@@ -50,14 +114,14 @@ services:
       - CORE_PEER_LOCALMSPID=PlatformerMSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp
       - CORE_VM_DOCKER_ATTACHSTDOUT=true
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric-dev
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=dev
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       - CORE_CHAINCODE_MODE=dev
     volumes:
         - /var/run/:/host/var/run/
-        - ./msps/PlatformerMSP/peers/peer0.platformer.example.com/msp:/etc/hyperledger/msp
-        - ./config/core.yaml:/etc/hyperledger/fabric/core.yaml
-        - ./external:/builders/external
+        - ./fabric/msps/PlatformerMSP/peers/peer0.platformer.example.com/msp:/etc/hyperledger/msp
+        - ./fabric/config/core.yaml:/etc/hyperledger/fabric/core.yaml
+        - ./fabric/external:/builders/external
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:
@@ -67,7 +131,7 @@ services:
     depends_on:
       - orderer.example.com
     networks:
-      - fabric-dev
+      - dev
     extra_hosts:
       - host.internal:${LOCAL_HOST_IP}
 
@@ -83,18 +147,18 @@ services:
       - CORE_PEER_ADDRESS=peer0.platformer.example.com:7051
       - CORE_PEER_LOCALMSPID=PlatformerMSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp
-      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=fabric-dev
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=dev
     working_dir: /opt/gopath/src/chaincodedev
     command: /bin/bash -c './scripts/createChannel.sh'
     volumes:
         - /var/run/:/host/var/run/
-        - ./msps/PlatformerMSP/users/Admin@platformer.example.com/msp:/etc/hyperledger/msp
-        - ./external:/etc/hyperledger/fabric/external
-        - ./:/opt/gopath/src/chaincodedev/
+        - ./fabric/msps/PlatformerMSP/users/Admin@platformer.example.com/msp:/etc/hyperledger/msp
+        - ./fabric/external:/etc/hyperledger/fabric/external
+        - ./fabric:/opt/gopath/src/chaincodedev/
     depends_on:
       - orderer.example.com
       - peer0.platformer.example.com
     networks:
-      - fabric-dev
+      - dev
     extra_hosts:
       - host.internal:${LOCAL_HOST_IP}

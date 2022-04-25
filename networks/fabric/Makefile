@@ -3,7 +3,7 @@ SCRIPT_DIR?=$(CURDIR)/scripts
 
 FABRIC_VERSION?=2.2.1
 CA_VERSION?=1.4.7
-DOCKER_NETWORK=fabric-dev
+DOCKER_NETWORK=dev
 
 export PATH := $(FABRIC_BIN_DIR):$(PATH)
 
@@ -27,14 +27,12 @@ clean:
 configtx:
 	$(SCRIPT_DIR)/configtx.sh
 
-#.PHONY: cryptogen
-#cryptogen:
-#	$(FABRIC_BIN_DIR)/cryptogen generate --config $(CURDIR)/cryptogen/crypto-config.yaml --output $(CURDIR)/organizations
-
 .PHONY: up-ca
 up-ca:
 	CA_IMAGE_TAG=$(CA_VERSION) \
-	docker-compose -f docker-compose-ca.yaml up -d
+	docker-compose -f ../docker-compose.yaml up -d \
+		ca.platformer.example.com \
+		ca.example.com
 
 .PHONY: enroll
 enroll:
@@ -64,12 +62,18 @@ up:
 	LOCAL_HOST_IP=$(shell docker network inspect $(DOCKER_NETWORK) | jq -r ".[].IPAM.Config[].Gateway") \
 	IMAGE_TAG=$(FABRIC_VERSION) \
 	LOGGING_SPEC=info \
-	docker-compose up -d
+	docker-compose -f ../docker-compose.yaml up -d \
+		orderer.example.com \
+		peer0.platformer.example.com \
+		fabric-cli
 
 .PHONY: down-ca
 down-ca:
 	CA_IMAGE_TAG=$(CA_VERSION) \
-	docker-compose -f docker-compose-ca.yaml down -v
+	docker-compose -f ../docker-compose.yaml \
+		rm -fsv \
+		ca.platformer.example.com \
+		ca.example.com
 
 .PHONY: start
 start: clean up-ca enroll init up
@@ -82,21 +86,23 @@ createChannel:
 
 .PHONY: deployCC
 deployCC:
-	docker-compose exec -T fabric-cli bash -c "./scripts/deployCC.sh"
+	docker-compose -f ../docker-compose.yaml \
+	exec -T fabric-cli /bin/bash -c "scripts/deployCC.sh"
 
 .PHONY: startCC
 startCC:
 	$(SCRIPT_DIR)/startCC.sh
 
 .PHONY: down
-down:
+down: down-ca
 	LOCAL_HOST_IP=$(LOCAL_HOST_IP) IMAGE_TAG=$(FABRIC_VERSION) LOGGING_SPEC=$(LOGGING_SPEC) \
 	CA_IMAGE_TAG=$(CA_VERSION) \
 	docker-compose \
-	-f docker-compose-cc.yaml \
-	-f docker-compose-ca.yaml \
-	-f docker-compose.yaml \
-	down --volumes --remove-orphans
+	-f ../docker-compose.yaml \
+	rm -fsv \
+	orderer.example.com \
+	peer0.platformer.example.com \
+	fabric-cli
 
 .PHONY: restart
 restart:

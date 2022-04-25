@@ -4,11 +4,6 @@ build:
 	&& make -C contract build \
 	&& make -C relayer build
 
-.PHONY: build-image
-build-image:
-	make -C chaincode build-image \
-	&& make -C contract build-image
-
 .PHONY: setup
 setup: start-cosmos start-fabric prepare
 
@@ -39,7 +34,8 @@ transfer:
 	-C tests test
 
 .PHONY: stop
-stop: stop-cosmos stop-fabric
+stop:
+	make -C networks down
 
 .PHONY: stop-fabric
 stop-fabric:
