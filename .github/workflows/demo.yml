@@ -1,0 +1,44 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+name: Run Demo
+jobs:
+  demo:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        go: [ '1.17', '1.18' ]
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+    - name: Setup go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ matrix.go }}
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ matrix.go }}-${{ hashFiles('chaincode/go.sum', 'contract/go.sum', 'relayer/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-${{ matrix.go }}-
+    - name: build
+      run: make build
+    - name: start cosmos network
+      run: make start-cosmos
+    - name: start fabric network
+      run: make start-fabric
+    - name: change some file owners
+      run: sudo chown -R runner:docker networks/fabric/msps/
+    - name: prepare for the demo
+      run: make prepare
+    - name: run the demo
+      run: make transfer
+    - name: stop demo env
+      run: make stop

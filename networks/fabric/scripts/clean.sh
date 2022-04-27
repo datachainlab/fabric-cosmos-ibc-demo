@@ -21,7 +21,11 @@ function removeUnwantedImages() {
 }
 
 #docker-compose -f docker-compose.yaml -f docker-compose-cc.yaml -f docker-compose-ca.yaml down --volumes --remove-orphans
-docker-compose -f docker-compose-ca.yaml down --volumes --remove-orphans
+docker-compose -f ../docker-compose.yaml \
+  rm -fsv \
+  ca.platformer.example.com \
+  ca.example.com
+
 clearContainers
 removeUnwantedImages
 
